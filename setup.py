@@ -4,7 +4,7 @@ setup(
     name = 'thermosmart_hass',
     packages = ['thermosmart_hass'],
     install_requires=['requests>=2.13.0'],
-    version = '0.3.0',
+    version = '0.2.0',
     description = 'A library to communicate with the API of thermosmart.',
     author='Ruud van der Horst',
     author_email='ik@ruudvdhorst.nl',
