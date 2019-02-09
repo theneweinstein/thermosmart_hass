@@ -4,6 +4,7 @@ import os
 import json
 import sys
 from urllib.parse import urlencode
+from requests_oauthlib import OAuth2Session
 
 class ThermosmartOauthError(Exception):
     pass
@@ -30,6 +31,7 @@ class ThermosmartOAuth(object):
         self.client_secret = 'c1d91661eef0bc4fa2ac67fd' 
         self.redirect_uri = redirect_uri
         self.cache_path = cache_path
+        self.session = OAuth2Session(self.client_id, redirect_uri = redirect_uri)
 
     def get_cached_token(self):
         ''' Gets a cached auth token
@@ -59,13 +61,15 @@ class ThermosmartOAuth(object):
     def get_authorize_url(self):
         """ Gets the URL to use to authorize this app
         """
-        payload = {"client_id": self.client_id,
-                   "response_type": "code",
-                   "redirect_uri": self.redirect_uri}
+        #payload = {"client_id": self.client_id,
+        #           "response_type": "code",
+        #           "redirect_uri": self.redirect_uri}
 
-        urlparams = urlencode(payload)
+        #urlparams = urlencode(payload)
 
-        return "%s?%s" % (self.OAUTH_AUTHORIZE_URL, urlparams)
+        #return "%s?%s" % (self.OAUTH_AUTHORIZE_URL, urlparams)
+        authorization_url, state = self.session.authorization_url(self.OAUTH_AUTHORIZE_URL)
+        return authorization_url
 
     def parse_response_code(self, url):
         """ Parse the response code in the given response url
@@ -86,17 +90,21 @@ class ThermosmartOAuth(object):
             Parameters:
                 - code
         """
-        payload = {'redirect_uri': self.redirect_uri,
-                   'code': code,
-                   'grant_type': 'authorization_code'}
+        #payload = {'redirect_uri': self.redirect_uri,
+        #           'code': code,
+        #           'grant_type': 'authorization_code'}
 
-        headers = self._make_authorization_headers()
+        #headers = self._make_authorization_headers()
 
-        response = requests.post(self.OAUTH_TOKEN_URL, data=payload,
-            headers=headers)
-        if response.status_code != 200:
-            raise ThermosmartOauthError(response.reason)
-        token_info = response.json()
+        #response = requests.post(self.OAUTH_TOKEN_URL, data=payload,
+        #    headers=headers)
+        #if response.status_code != 200:
+        #    raise ThermosmartOauthError(response.reason)
+        #token_info = response.json()
+        #self._save_token_info(token_info)
+        #return token_info
+
+        token_info = self.session.fetch_token(self.OAUTH_TOKEN_URL, client_secret=self.client_secret, authorization_response=code)
         self._save_token_info(token_info)
         return token_info
 
