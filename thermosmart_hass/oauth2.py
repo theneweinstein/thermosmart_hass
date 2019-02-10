@@ -16,7 +16,7 @@ class ThermosmartOAuth(object):
     OAUTH_AUTHORIZE_URL = 'https://api.thermosmart.com/oauth2/authorize'
     OAUTH_TOKEN_URL = 'https://api.thermosmart.com/oauth2/token'
 
-    def __init__(self, redirect_uri, cache_path=None):
+    def __init__(self, client_id, client_secret, redirect_uri, cache_path=None):
         '''
             Creates a ThermosmartOAuth object
             Parameters:
@@ -26,8 +26,8 @@ class ThermosmartOAuth(object):
                  - cache_path - path to location to save tokens
         '''
 
-        self.client_id = 'api-rob-b130d8f5123bf24b'
-        self.client_secret = 'c1d91661eef0bc4fa2ac67fd' 
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.cache_path = cache_path
 

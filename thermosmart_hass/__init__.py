@@ -2,12 +2,12 @@ from . import oauth2
 import requests
 import json
 
-SENSOR_LIST = {'Control_setpoint': '°C', 'Modulation_level':'%', 'Water_pressure':'bar', 'DHW_flow_rate':'l/min', 'Boiler_temperature': '°C', 'DHW_temperature': '°C', \
-                    'Outside_temperature': '°C', 'Return_water_temperature': '°C', 'Heat_exchanger_temperature': '°C', 'DHW_setpoint': '°C', \
-                    'OT_version':'' }
+SENSOR_LIST = {'Control setpoint': '°C', 'Modulation level':'%', 'Water pressure':'bar', 'Hot water flow rate':'l/min', 'Boiler temperature': '°C', 'Hot water temperature': '°C', \
+                    'Outside temperature': '°C', 'Return water temperature': '°C', 'Heat exchanger temperature': '°C', 'Hot water setpoint': '°C', \
+                    'Opentherm version':'' }
 
 BIN_SENSOR_LIST = ['CH_enabled', 'DHW_enabled', 'Cooling_enabled', 'OTC_active', 'CH2_enabled', 'Summer_winter_mode', \
-                    'DHW blocked', 'DHW_present', 'Control_type', 'Cooling_config', \
+                    'DHW_blocked', 'DHW_present', 'Control_type', 'Cooling_config', \
                     'DHW_config', 'pump_control', 'CH2_present', 'remote_water_fill', 'heat_cool_control']
 
 class ThermoSmart(object):
@@ -180,10 +180,10 @@ class ThermoSmart(object):
             converted_data['OTC_active'] = True if bytes.fromhex(data['ot0'][2:])[0] & 8 == 8 else False 
             converted_data['CH2_enabled'] = True if bytes.fromhex(data['ot0'][2:])[0] & 16 == 16 else False 
             converted_data['Summer_winter_mode'] = True if bytes.fromhex(data['ot0'][2:])[0] & 32 == 32 else False 
-            converted_data['DHW blocked'] = True if bytes.fromhex(data['ot0'][2:])[0] & 64 == 64 else False 
+            converted_data['DHW_blocked'] = True if bytes.fromhex(data['ot0'][2:])[0] & 64 == 64 else False 
         # Convert ot1
         if data.get('ot1'):
-            converted_data['Control_setpoint'] = self._convert_f88_to_float(data['ot1'])
+            converted_data['Control setpoint'] = self._convert_f88_to_float(data['ot1'])
         # Convert ot3
         if data.get('ot3'):
             converted_data['DHW_present'] = True if bytes.fromhex(data['ot3'][2:])[0] & 1 == 1 else False
@@ -196,34 +196,34 @@ class ThermoSmart(object):
             converted_data['heat_cool_control'] = 'master' if bytes.fromhex(data['ot3'][2:])[0] & 128 == 128 else 'slave' 
         # Convert ot17
         if data.get('ot17'):
-            converted_data['Modulation_level'] = self._convert_f88_to_float(data['ot17'])
+            converted_data['Modulation level'] = self._convert_f88_to_float(data['ot17'])
         # Convert ot18
         if data.get('ot18'):
-            converted_data['Water_pressure'] = self._convert_f88_to_float(data['ot18'])
+            converted_data['Water pressure'] = self._convert_f88_to_float(data['ot18'])
         # Convert ot19
         if data.get('ot19'):
-            converted_data['DHW_flow_rate'] = self._convert_f88_to_float(data['ot19'])
+            converted_data['Hot water flow rate'] = self._convert_f88_to_float(data['ot19'])
         # Convert ot25
         if data.get('ot25'):
-            converted_data['Boiler_temperature'] = self._convert_f88_to_float(data['ot25'])
+            converted_data['Boiler temperature'] = self._convert_f88_to_float(data['ot25'])
         # Convert ot26
         if data.get('ot26'):
-            converted_data['DHW_temperature'] = self._convert_f88_to_float(data['ot26'])
+            converted_data['Hot water temperature'] = self._convert_f88_to_float(data['ot26'])
         # Convert ot27
         if data.get('ot27'):
-            converted_data['Outside_temperature'] = self._convert_f88_to_float(data['ot27'])
+            converted_data['Outside temperature'] = self._convert_f88_to_float(data['ot27'])
         # Convert ot28
         if data.get('ot28'):
-            converted_data['Return_water_temperature'] = self._convert_f88_to_float(data['ot28'])
+            converted_data['Return water temperature'] = self._convert_f88_to_float(data['ot28'])
         # Convert ot34
         if data.get('ot34'):
-            converted_data['Heat_exchanger_temperature'] = self._convert_f88_to_float(data['ot34'])
+            converted_data['Heat exchanger temperature'] = self._convert_f88_to_float(data['ot34'])
         # Convert ot56
         if data.get('ot56'):
-            converted_data['DHW_setpoint'] = self._convert_f88_to_float(data['ot56'])
+            converted_data['Hot water setpoint'] = self._convert_f88_to_float(data['ot56'])
         # Convert ot125
         if data.get('ot125'):
-            converted_data['OT_version'] = self._convert_f88_to_float(data['ot125'])
+            converted_data['Opentherm version'] = self._convert_f88_to_float(data['ot125'])
 
         return converted_data
 
