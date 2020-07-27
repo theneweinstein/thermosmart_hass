@@ -1,6 +1,4 @@
-from . import oauth2
-import requests
-import json
+from . import thermosmart_api
 
 SENSOR_LIST = {'Control setpoint': '°C', 'Modulation level':'%', 'Water pressure':'bar', 'Hot water flow rate':'l/min', 'Boiler temperature': '°C', 'Hot water temperature': '°C', \
                     'Outside temperature': '°C', 'Return water temperature': '°C', 'Heat exchanger temperature': '°C', 'Hot water setpoint': '°C', \
@@ -10,98 +8,53 @@ BIN_SENSOR_LIST = ['CH_enabled', 'DHW_enabled', 'Cooling_enabled', 'OTC_active',
                     'DHW_blocked', 'DHW_present', 'Control_type', 'Cooling_config', \
                     'DHW_config', 'pump_control', 'CH2_present', 'remote_water_fill', 'heat_cool_control']
 
-class ThermoSmart(object):
+class ThermosmartDevice(object):
     """ 
     Class represents the Thermosmart thermostat
     """
 
-    def __init__(self, token=None):
+    def __init__(self, api=None, device_id: str = None):
 
-        self._session = requests.Session()
-        self._token = token
-        self.prefix = 'https://api.thermosmart.com/'
-        self.id = self._get_thermostat_id()
-        self.latest_update = None
-        self.update()
+        self._api = api
+        self.data = None
+        self.device_id = device_id
 
-    def _internal_call(self, method, url, headers, payload):
-        args = dict()
-        url = self.prefix + url + '?access_token=' + self._token
-        if payload:
-            args['data'] = json.dumps(payload)
-
-        if headers:
-            args['headers'] = headers
-
-        r = self._session.request(method, url, **args)
-
-        if r.status_code == 204:
-            raise Exception("Empty update.")
-        elif r.status_code == 400:
-            raise Exception("Invalid update:" + r.json()['error'])
-        elif r.status_code == 403:
-            raise Exception("Unauthorized access.")
-        elif r.status_code == 404:
-            raise Exception("Thermostat not found.")
-        elif r.status_code == 500:
-            raise Exception("Something went wrong with processing the request.")
-
-        if method == 'GET':
-            return r.json()
-        else:
-            return
-
-    def _get(self, url, args=None, payload=None):
-        return self._internal_call('GET', url, None, payload)
-
-    def _put(self, url, args=None, payload=None):
-        return self._internal_call('PUT', url, {"Content-Type": "application/json"}, payload)
-
-    def _post(self, url, args=None, payload=None):
-        return self._internal_call('POST', url, {"Content-Type": "application/json"}, payload)
-            
-    def _get_thermostat_id(self):
-        return (self._get('thermostat'))['hw']
-
-    def request_thermostat(self):
-        return self.latest_update
-
-    def update(self):
-        result = self._get('thermostat/' + self.id)
+    def get_thermostat(self):
+        result = self._api.get('/thermostat/' + self.device_id, payload={"scope": "ot"})
         if result.get('ot'):
             if result['ot']['enabled']:
-                result['ot']['readable'] = self.convert_ot_data(result['ot']['raw'])
-        self.latest_update = result
+                result['ot']['readable'] = self.convert_otdata(result['ot']['raw'])
+        self.data = result
 
     def name(self):
-        return self.latest_update['name']
+        return self.data['name']
 
     def room_temperature(self):
-        return self.latest_update['room_temperature']
+        return self.data['room_temperature']
 
     def target_temperature(self):
-        return self.latest_update['target_temperature']
+        return self.data['target_temperature']
 
     def outside_temperature(self):
-        return self.latest_update['outside_temperature']
+        return self.data['outside_temperature']
     
     def programs(self):
-        return self.latest_update['programs']
+        return self.data['programs']
     
     def schedule(self):
-        return self.latest_update['schedule']
+        return self.data['schedule']
 
     def exceptions(self):
-        return self.latest_update['exceptions']
+        return self.data['exceptions']
 
     def source(self):
-        return self.latest_update['source']
+        return self.data['source']
 
     def firmwware(self):
-        return self.latest_update['fw']
+        return self.data['fw']
 
     def opentherm(self):
-        result = self.latest_update
+        result = self.data
         if result.get('ot'):
             if result['ot']['enabled']:
                 return self.convert_ot_data(result['ot']['raw'])
@@ -109,19 +62,19 @@ class ThermoSmart(object):
                 return None
 
     def location(self):
-        return self.latest_update['location']
+        return self.data['location']
 
     def outside_temperature_icon(self):
-        return self.latest_update['outside_temperature_icon']
+        return self.data['outside_temperature_icon']
 
     def geofence_devices(self):
-        return self.latest_update['geofence_devices']
+        return self.data['geofence_devices']
 
     def geofence_enabled(self):
-        return self.latest_update['geofence_enabled']
+        return self.data['geofence_enabled']
 
-    def set_target_temperature(self,temperature):
-        self._put('thermostat/' + self.id, payload={"target_temperature": temperature})
+    def set_target_temperature(self, temperature):
+        self._api.put('/thermostat/' + self.device_id, payload={"target_temperature": temperature})
 
     def set_exceptions(self, exceptions):
         """
@@ -133,7 +86,7 @@ class ThermoSmart(object):
         Example:
         [{"start":[2014,3,26,21,30],"end":[2014,3,27,0,30],"temperature":"home"}]
         """
-        self._put('thermostat/' + self.id, payload={"exceptions": exceptions})
+        self._api.put('/thermostat/' + self.device_id, payload={"exceptions": exceptions})
     
     def set_schedule(self, schedule):
         """
@@ -144,7 +97,7 @@ class ThermoSmart(object):
         Example:
         [{"start":[6,5,30],"temperature":"home"}, {"start":[6,9,0],"temperature":"not_home"}]
         """
-        self._put('thermostat/' + self.id, payload={"schedule": schedule})
+        self._api.put('/thermostat/' + self.device_id, payload={"schedule": schedule})
     
     def set_programs(self, programs):
         """
@@ -153,22 +106,22 @@ class ThermoSmart(object):
         Example:
         {"anti_freeze":12,"not_home":15,"home":19,"comfort":22,"pause":5}
         """
-        self._put('thermostat/' + self.id, payload={"schedule": programs})
+        self._api.put('/thermostat/' + self.device_id, payload={"schedule": programs})
 
     def set_outside_temperature(self, temperature):
-        self._put('thermostat/' + self.id, payload={"outside_temperature": temperature})
+        self._api.put('/thermostat/' + self.device_id, payload={"outside_temperature": temperature})
 
     def set_room_temperature(self, temperature):
-        self._put('thermostat/' + self.id, payload={"room_temperature": temperature})
+        self._api.put('/thermostat/' + self.device_id, payload={"room_temperature": temperature})
 
     def set_geofence_enabled(self, enabled):
-        self._put('thermostat/' + self.id, payload={"geofence_enabled": enabled})
+        self._api.put('/thermostat/' + self.device_id, payload={"geofence_enabled": enabled})
 
     def pause_thermostat(self, yesno):
-        self._post('thermostat/' + self.id +'/pause', payload={"pause": yesno})
+        self._api.post('/thermostat/' + self.device_id +'/pause', payload={"pause": yesno})
 
     def webhook(self, webhook):
-        self._post('', payload={"webhook_url": webhook})
+        self._api.post('', payload={"webhook_url": webhook})
 
     def convert_ot_data(self, data):
         converted_data = dict()
