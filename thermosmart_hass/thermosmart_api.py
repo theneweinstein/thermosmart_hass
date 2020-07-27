@@ -110,5 +110,6 @@ class ThermosmartApi:
             code=code,
             client_secret=self.client_secret,
             include_client_id=True,
-            headers = self._make_authorization_headers()
+            headers = self._make_authorization_headers(),
+            grant_type = 'authorization_code',
         )
