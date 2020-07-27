@@ -1,5 +1,3 @@
-from . import thermosmart_api
-
 SENSOR_LIST = {'Control setpoint': '°C', 'Modulation level':'%', 'Water pressure':'bar', 'Hot water flow rate':'l/min', 'Boiler temperature': '°C', 'Hot water temperature': '°C', \
                     'Outside temperature': '°C', 'Return water temperature': '°C', 'Heat exchanger temperature': '°C', 'Hot water setpoint': '°C', \
                     'Opentherm version':'' }
@@ -23,7 +21,7 @@ class ThermosmartDevice(object):
         result = self._api.get('/thermostat/' + self.device_id, payload={"scope": "ot"})
         if result.get('ot'):
             if result['ot']['enabled']:
-                result['ot']['readable'] = self.convert_otdata(result['ot']['raw'])
+                result['ot']['readable'] = self.convert_ot_data(result['ot']['raw'])
         self.data = result
 
     def name(self):
