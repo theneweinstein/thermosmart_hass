@@ -61,7 +61,7 @@ class ThermosmartApi:
         if response.status_code == 204:
             raise Exception("Empty update.")
         elif response.status_code == 400:
-            raise Exception("Invalid update:" + r.json()['error'])
+            raise Exception("Invalid update:" + response.json()['error'])
         elif response.status_code == 403:
             raise Exception("Unauthorized access.")
         elif response.status_code == 404:

@@ -25,7 +25,7 @@ class ThermosmartDevice(object):
         self.data = result
 
     def name(self):
-        return self.data['name']
+        return self.data['name'] 
 
     def room_temperature(self):
         return self.data['room_temperature']
@@ -186,3 +186,36 @@ class ThermosmartDevice(object):
 
     def get_CV_bin_sensor_list(self):
         return BIN_SENSOR_LIST
+
+    def process_webhook(self, message):
+        """Process a webhook message."""
+        if message['thermostat'] != self.device_id:
+            return
+
+        if message.get('room_temperature'):
+            self.data['room_temperature'] = message['room_temperature']
+
+        if message.get('target_temperature'):
+            self.data['target_temperature'] = message['target_temperature']
+
+        if message.get('outside_temperature'):
+            self.data['outside_temperature'] = message['outside_temperature']
+
+        if message.get('programs'):
+            for key, val in message['programs'].items():
+                self.data['programs'][key] = val
+            
+        if message.get('schedule'):
+            self.data['schedule'] = message['schedule']
+
+        if message.get('exceptions'):
+            self.data['exceptions'] = message['exceptions']
+
+        if message.get('source'):
+            self.data['source'] = message['source']
+    
+        if message.get('ot'):
+            for key, val in message['ot']['raw'].items():
+                self.data['ot']['raw'][key] = val
+
+            self.data['ot']['readable'] = self.convert_ot_data(self.data['ot']['raw'])
