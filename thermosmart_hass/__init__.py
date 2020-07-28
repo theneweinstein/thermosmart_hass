@@ -18,7 +18,7 @@ class ThermosmartDevice(object):
         self.device_id = device_id
 
     def get_thermostat(self):
-        result = self._api.get('/thermostat/' + self.device_id, payload={"scope": "ot"})
+        result = (self._api.get('/thermostat/' + self.device_id)).json()
         if result.get('ot'):
             if result['ot']['enabled']:
                 result['ot']['readable'] = self.convert_ot_data(result['ot']['raw'])

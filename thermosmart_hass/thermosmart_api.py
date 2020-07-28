@@ -2,7 +2,10 @@ from . import ThermosmartDevice
 from typing import Optional, Union, Callable, Dict
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import TokenExpiredError
-from requests import Response
+from requests import (
+    Response,
+    request as rq,
+)
 
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
@@ -30,35 +33,21 @@ class ThermosmartApi:
         redirect_uri: Optional[str] = None,
         token: Optional[Dict[str, str]] = None,
         token_updater: Optional[Callable[[str], None ]] = None,
-        scope: Optional[str] = "ot"
     ):
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.token_updater = token_updater
-        self.scope = scope
-
-        extra = {"client_id": self.client_id, "client_secret": self.client_secret}
 
         self._oauth = OAuth2Session(
             client_id=client_id,
             token=token,
             token_updater=token_updater,
             redirect_uri=self.redirect_uri,
-            scope=scope
         )
 
     def get_thermostat_id(self):
-        return (self.get('/thermostat'))['hw']
-
-    def refresh_tokens(self) -> Dict[str, Union[str, int]]:
-        """Refresh and return new tokens."""
-        token = self._oauth.refresh_token(TOKEN_URL)
-
-        if self.token_updater is not None:
-            self.token_updater(token)
-
-        return token
+        return (self.get('/thermostat')).json()['hw']
 
     def request(self, method: str, path: str, **kwargs) -> Response:
         """Make a request.
@@ -66,13 +55,21 @@ class ThermosmartApi:
         We don't use the built-in token refresh mechanism of OAuth2 session because
         we want to allow overriding the token refresh logic.
         """
-        url = BASE_URL + path +'?access_token=' + self._oauth.access_token
-        try:
-            return getattr(self._oauth, method)(url, **kwargs)
-        except TokenExpiredError:
-            self._oauth.token = self.refresh_tokens()
+        url = BASE_URL + path
+        response = getattr(self._oauth, method)(url, **kwargs)
 
-            return getattr(self._oauth, method)(url, **kwargs)
+        if response.status_code == 204:
+            raise Exception("Empty update.")
+        elif response.status_code == 400:
+            raise Exception("Invalid update:" + r.json()['error'])
+        elif response.status_code == 403:
+            raise Exception("Unauthorized access.")
+        elif response.status_code == 404:
+            raise Exception("Thermostat not found.")
+        elif response.status_code == 500:
+            raise Exception("Something went wrong with processing the request.")
+
+        return response
 
     def get(self, path: str, **kwargs) -> Response:
         """Fetch data from API."""
