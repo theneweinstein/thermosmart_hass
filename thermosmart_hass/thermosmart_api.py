@@ -66,7 +66,7 @@ class ThermosmartApi:
         We don't use the built-in token refresh mechanism of OAuth2 session because
         we want to allow overriding the token refresh logic.
         """
-        url = BASE_URL + path
+        url = BASE_URL + path +'?access_token=' + self._oauth.access_token
         try:
             return getattr(self._oauth, method)(url, **kwargs)
         except TokenExpiredError:
@@ -89,27 +89,19 @@ class ThermosmartApi:
     def get_authorization_url(self, state: Optional[str] = None) -> Tuple[str, str]:
         return self._oauth.authorization_url(OAUTH_URL, state)
 
-    def _make_authorization_headers(self):
-        auth_header = base64.b64encode((self.client_id + ':' + self.client_secret).encode('ascii'))
-        return {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-
     def request_token(
-        self, authorization_response: Optional[str] = None, code: Optional[str] = None
-    ) -> Dict[str, str]:
+        self, authorization_response: Optional[str] = None
+        ) -> Dict[str, str]:
         """
         Generic method for fetching a Thermosmart access token.
         :param authorization_response: Authorization response URL, the callback
                                        URL of the request back to you.
-        :param code: Authorization code
         :return: A token dict
         """
 
         return self._oauth.fetch_token(
             TOKEN_URL,
             authorization_response=authorization_response,
-            code=code,
-            client_secret=self.client_secret,
-            include_client_id=True,
-            headers = self._make_authorization_headers(),
-            grant_type = 'authorization_code',
+            client_id=self.client_id,
+            client_secret=self.client_secret,   
         )
