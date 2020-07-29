@@ -1,21 +1,7 @@
 from . import ThermosmartDevice
-from typing import Optional, Union, Callable, Dict
+from typing import Optional, Callable, Dict, Tuple
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import TokenExpiredError
-from requests import (
-    Response,
-    request as rq,
-)
-
-from typing import Any, Callable, Dict, Optional, Tuple, Union
-
-
-import base64
-import requests
-import os
-import json
-import sys
-from urllib.parse import urlencode
+from requests import Response
 
 BASE_URL = 'https://api.thermosmart.com'
 OAUTH_URL = 'https://api.thermosmart.com/oauth2/authorize'
