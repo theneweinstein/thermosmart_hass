@@ -72,7 +72,7 @@ class ThermosmartDevice(object):
         return self.data['geofence_enabled']
 
     def set_target_temperature(self, temperature):
-        self._api.put('/thermostat/' + self.device_id, payload={"target_temperature": temperature})
+        self._api.put('/thermostat/' + self.device_id, data={"target_temperature": temperature})
 
     def set_exceptions(self, exceptions):
         """
@@ -84,7 +84,7 @@ class ThermosmartDevice(object):
         Example:
         [{"start":[2014,3,26,21,30],"end":[2014,3,27,0,30],"temperature":"home"}]
         """
-        self._api.put('/thermostat/' + self.device_id, payload={"exceptions": exceptions})
+        self._api.put('/thermostat/' + self.device_id, data={"exceptions": exceptions})
     
     def set_schedule(self, schedule):
         """
@@ -95,7 +95,7 @@ class ThermosmartDevice(object):
         Example:
         [{"start":[6,5,30],"temperature":"home"}, {"start":[6,9,0],"temperature":"not_home"}]
         """
-        self._api.put('/thermostat/' + self.device_id, payload={"schedule": schedule})
+        self._api.put('/thermostat/' + self.device_id, data={"schedule": schedule})
     
     def set_programs(self, programs):
         """
@@ -104,22 +104,22 @@ class ThermosmartDevice(object):
         Example:
         {"anti_freeze":12,"not_home":15,"home":19,"comfort":22,"pause":5}
         """
-        self._api.put('/thermostat/' + self.device_id, payload={"schedule": programs})
+        self._api.put('/thermostat/' + self.device_id, data={"schedule": programs})
 
     def set_outside_temperature(self, temperature):
-        self._api.put('/thermostat/' + self.device_id, payload={"outside_temperature": temperature})
+        self._api.put('/thermostat/' + self.device_id, data={"outside_temperature": temperature})
 
     def set_room_temperature(self, temperature):
-        self._api.put('/thermostat/' + self.device_id, payload={"room_temperature": temperature})
+        self._api.put('/thermostat/' + self.device_id, data={"room_temperature": temperature})
 
     def set_geofence_enabled(self, enabled):
-        self._api.put('/thermostat/' + self.device_id, payload={"geofence_enabled": enabled})
+        self._api.put('/thermostat/' + self.device_id, data={"geofence_enabled": enabled})
 
     def pause_thermostat(self, yesno):
-        self._api.post('/thermostat/' + self.device_id +'/pause', payload={"pause": yesno})
+        self._api.post('/thermostat/' + self.device_id +'/pause', data={"pause": yesno})
 
     def webhook(self, webhook):
-        self._api.post('', payload={"webhook_url": webhook})
+        self._api.post('', data={"webhook_url": webhook})
 
     def convert_ot_data(self, data):
         converted_data = dict()
