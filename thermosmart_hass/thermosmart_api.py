@@ -2,6 +2,7 @@ from . import ThermosmartDevice
 from typing import Optional, Callable, Dict, Tuple
 from requests_oauthlib import OAuth2Session
 from requests import Response
+import json
 
 BASE_URL = 'https://api.thermosmart.com'
 OAUTH_URL = 'https://api.thermosmart.com/oauth2/authorize'
@@ -42,12 +43,14 @@ class ThermosmartApi:
         we want to allow overriding the token refresh logic.
         """
         url = BASE_URL + path
+        if kwargs.get('data'):
+            kwargs['data']= json.dumps(kwargs['data'])
         response = getattr(self._oauth, method)(url, **kwargs)
 
         if response.status_code == 204:
             raise Exception("Empty update.")
         elif response.status_code == 400:
-            raise Exception("Invalid update:" + response.json()['error'])
+            raise Exception("Invalid update:" + response)
         elif response.status_code == 403:
             raise Exception("Unauthorized access.")
         elif response.status_code == 404:
